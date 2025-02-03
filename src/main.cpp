@@ -35,6 +35,8 @@ void Main::Geaux()
 
         coffeeMaker.joeChangedEventHandler.append(JoeChanged);
 
+        SPDLOG_INFO("Connecting...");
+
         if (!coffeeMaker.connect())
         {
             SPDLOG_INFO("connect() failed, retry in 5 seconds...");
@@ -43,6 +45,18 @@ void Main::Geaux()
         }
 
         SPDLOG_INFO("Entering message loop.");
+
+        jutta_bt_proto::Product coffee = coffeeMaker.get_joe()->products[2];
+
+        jutta_bt_proto::Product custom_coffee(
+            std::move(coffee.name), 
+            std::move(coffee.code),
+            std::make_optional<jutta_bt_proto::ItemsOption>(std::move(coffee.strength->argument), "0A", std::move(coffee.strength->items)),
+            std::move(coffee.temperature),
+            std::move(coffee.waterAmount),
+            std::move(coffee.milkFoamAmount));
+
+        // coffeeMaker.request_coffee(custom_coffee);
 
         while (coffeeMaker.get_state() == jutta_bt_proto::CONNECTED)
         {
