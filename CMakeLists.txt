@@ -17,8 +17,8 @@ target_include_directories(jeaux PUBLIC
                             ${CMAKE_CURRENT_SOURCE_DIR}/../protocol-bt-cpp/build/_deps/eventpp-src/include)
 
 target_link_libraries(jeaux
-                        ${LIBMARIA}
                         fmt::fmt
+                        ${LIBMARIA}
                         ${CMAKE_CURRENT_SOURCE_DIR}/../protocol-bt-cpp/build/src/bt/libbt.so
                         ${CMAKE_CURRENT_SOURCE_DIR}/../protocol-bt-cpp/build/src/jutta_bt_proto/libjutta_bt_proto.so)
 

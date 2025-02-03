@@ -3,7 +3,6 @@
 #include "logger/Logger.hpp"
 #include "bt/BLEHelper.hpp"
 #include "jutta_bt_proto/CoffeeMaker.hpp"
-#include <mariadb/conncpp.hpp>
 
 int main()
 {
@@ -44,28 +43,27 @@ void Main::Geaux()
             continue;
         }
 
-        SPDLOG_INFO("Entering message loop.");
+        // jutta_bt_proto::Product coffee = coffeeMaker.get_joe()->products[2];
 
-        jutta_bt_proto::Product coffee = coffeeMaker.get_joe()->products[2];
-
-        jutta_bt_proto::Product custom_coffee(
-            std::move(coffee.name), 
-            std::move(coffee.code),
-            std::make_optional<jutta_bt_proto::ItemsOption>(std::move(coffee.strength->argument), "0A", std::move(coffee.strength->items)),
-            std::move(coffee.temperature),
-            std::move(coffee.waterAmount),
-            std::move(coffee.milkFoamAmount));
+        // jutta_bt_proto::Product custom_coffee(
+        //     std::move(coffee.name), 
+        //     std::move(coffee.code),
+        //     std::make_optional<jutta_bt_proto::ItemsOption>(std::move(coffee.strength->argument), "0A", std::move(coffee.strength->items)),
+        //     std::move(coffee.temperature),
+        //     std::move(coffee.waterAmount),
+        //     std::move(coffee.milkFoamAmount));
 
         // coffeeMaker.request_coffee(custom_coffee);
 
+        SPDLOG_INFO("Entering statistics loop.");
+
         while (coffeeMaker.get_state() == jutta_bt_proto::CONNECTED)
         {
-            // TODO move this to some event handler
-            // coffeeMaker.request_statistics(jutta_bt_proto::StatParseMode::MAINTENANCE_COUNTER);
-            // coffeeMaker.request_statistics(jutta_bt_proto::StatParseMode::MAINTENANCE_PERCENT);
-            // coffeeMaker.request_statistics(jutta_bt_proto::StatParseMode::PRODUCT_COUNTERS_DAILY);
+            coffeeMaker.request_statistics(jutta_bt_proto::StatParseMode::MAINTENANCE_COUNTER);
+            coffeeMaker.request_statistics(jutta_bt_proto::StatParseMode::MAINTENANCE_PERCENT);
+            coffeeMaker.request_statistics(jutta_bt_proto::StatParseMode::PRODUCT_COUNTERS_DAILY);
 
-            std::this_thread::sleep_for(std::chrono::seconds{1});
+            std::this_thread::sleep_for(std::chrono::minutes{1});
         }
 
         SPDLOG_INFO("Disconnected.");
@@ -80,33 +78,61 @@ void Main::JoeChanged(const std::shared_ptr<jutta_bt_proto::Joe>& joe)
 
 void Main::AlertsChanged(const std::vector<const jutta_bt_proto::Alert*>& alerts)
 {
+    auto conn = GetDbConnection();
+
     for (const jutta_bt_proto::Alert* alert : alerts)
-        SPDLOG_INFO("New alert '{}' with type '{}'.", alert->name, alert->type);
+    {
+        SPDLOG_INFO("Writing new alert to database: name '{}' with type '{}'.", alert->name, alert->type);
+        std::unique_ptr<sql::PreparedStatement> stmnt(conn->prepareStatement("INSERT INTO alerts (timestamp, name, type) VALUES (CURRENT_TIMESTAMP(3), ?, ?)"));
+        stmnt->setString(1, alert->name);
+        stmnt->setString(2, alert->type);
+        stmnt->executeQuery();
+    }
 }
 
 void Main::ProductStatisticCountersChanged(const std::shared_ptr<jutta_bt_proto::Joe>& joe)
 {
+    auto conn = GetDbConnection();
+
+    SPDLOG_INFO("Writing maintenance percentages to database.");
     for (const jutta_bt_proto::MaintenancePercentage& mp : joe->maintenancePercentages)
-        SPDLOG_INFO("Name: {}, Percentage: {}", mp.name, mp.percent);
+    {
+        std::unique_ptr<sql::PreparedStatement> stmnt(conn->prepareStatement(
+            "INSERT INTO maintenancePercentages (timestamp, name, percentage) VALUES (CURRENT_TIMESTAMP(3), ?, ?) ON DUPLICATE KEY UPDATE timestamp=CURRENT_TIMESTAMP(3), name=VALUES(name), percentage=VALUES(percentage)"));
 
+        stmnt->setString(1, mp.name);
+        stmnt->setUInt(2, mp.percent);
+        stmnt->executeQuery();
+    }
+
+    SPDLOG_INFO("Writing maintenance counters to database.");
     for (const jutta_bt_proto::MaintenanceCounter& mc : joe->maintenanceCounters)
-        SPDLOG_INFO("Name: {}, Count: {}", mc.name, mc.count);
+    {
+        std::unique_ptr<sql::PreparedStatement> stmnt(conn->prepareStatement(
+            "INSERT INTO maintenanceCounters (timestamp, name, count) VALUES (CURRENT_TIMESTAMP(3), ?, ?) ON DUPLICATE KEY UPDATE timestamp=CURRENT_TIMESTAMP(3), name=VALUES(name), count=VALUES(count)"));
 
+        stmnt->setString(1, mc.name);
+        stmnt->setUInt(2, mc.count);
+        stmnt->executeQuery();
+    }
+
+    SPDLOG_INFO("Writing product counters to database.");
     for (const jutta_bt_proto::Product& p : joe->products)
-        SPDLOG_INFO("Product Name: {}, Code: {}, StatCounter: {}", p.name, p.code, p.statCounter);
+    {
+        std::unique_ptr<sql::PreparedStatement> stmnt(conn->prepareStatement(
+            "INSERT INTO productCounters (timestamp, name, code, count) VALUES (CURRENT_TIMESTAMP(3), ?, ?, ?) ON DUPLICATE KEY UPDATE timestamp=CURRENT_TIMESTAMP(3), name=VALUES(name), code=VALUES(code), count=VALUES(count)"));
 
-    /*
+        stmnt->setString(1, p.name);
+        stmnt->setString(2, p.code);
+        stmnt->setUInt(3, p.statCounter);
+        stmnt->executeQuery();
+    }
+}
+
+std::unique_ptr<sql::Connection> Main::GetDbConnection()
+{
     sql::Driver* driver = sql::mariadb::get_driver_instance();
     sql::SQLString url("jdbc:mariadb://localhost:3306/jeaux");
     sql::Properties properties({{"user", ENVIRONMENT_DB_USER}, {"password", ENVIRONMENT_DB_PASS}});
-    std::unique_ptr<sql::Connection> conn(driver->connect(url, properties));
-
-    for (const jutta_bt_proto::Product& p : joe->products)
-    {
-        std::unique_ptr<sql::PreparedStatement> stmnt(conn->prepareStatement("INSERT INTO statistics (timestamp, product_name, counter) VALUES (CURRENT_TIMESTAMP, ?, ?)"));
-        stmnt->setString(1, p.name);
-        stmnt->setInt(2, p.statCounter);
-        stmnt->executeQuery();
-    }
-    */
+    return std::unique_ptr<sql::Connection>(driver->connect(url, properties));
 }
