@@ -92,8 +92,20 @@ cdupre@Mini:~/src/TechneauxJeaux$ cat /etc/logrotate.d/jeaux
 
 ```
 cdupre@Mini:~/src/TechneauxJeaux$ mariadb -u root -p
-Enter password:
+Enter password: 
+Welcome to the MariaDB monitor.  Commands end with ; or \g.
+Your MariaDB connection id is 272
+Server version: 10.11.8-MariaDB-0ubuntu0.24.04.1 Ubuntu 24.04
 
+Copyright (c) 2000, 2018, Oracle, MariaDB Corporation Ab and others.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+MariaDB [(none)]> use jeaux;
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Database changed
 MariaDB [jeaux]> show tables;
 +------------------------+
 | Tables_in_jeaux        |
@@ -120,32 +132,35 @@ MariaDB [jeaux]> describe maintenanceCounters;
 +-----------+----------------------+------+-----+---------+-------+
 | Field     | Type                 | Null | Key | Default | Extra |
 +-----------+----------------------+------+-----+---------+-------+
+| date      | date                 | NO   | PRI | NULL    |       |
 | name      | varchar(255)         | NO   | PRI | NULL    |       |
 | count     | smallint(5) unsigned | NO   |     | NULL    |       |
 | timestamp | datetime(3)          | NO   |     | NULL    |       |
 +-----------+----------------------+------+-----+---------+-------+
-3 rows in set (0.002 sec)
+4 rows in set (0.002 sec)
 
 MariaDB [jeaux]> describe maintenancePercentages;
 +------------+---------------------+------+-----+---------+-------+
 | Field      | Type                | Null | Key | Default | Extra |
 +------------+---------------------+------+-----+---------+-------+
+| date       | date                | NO   | PRI | NULL    |       |
 | name       | varchar(255)        | NO   | PRI | NULL    |       |
 | percentage | tinyint(3) unsigned | NO   |     | NULL    |       |
 | timestamp  | datetime(3)         | NO   |     | NULL    |       |
 +------------+---------------------+------+-----+---------+-------+
-3 rows in set (0.002 sec)
+4 rows in set (0.002 sec)
 
 MariaDB [jeaux]> describe productCounters;
 +-----------+------------------+------+-----+---------+-------+
 | Field     | Type             | Null | Key | Default | Extra |
 +-----------+------------------+------+-----+---------+-------+
+| date      | date             | NO   | PRI | NULL    |       |
 | name      | varchar(255)     | NO   | PRI | NULL    |       |
 | code      | varchar(255)     | NO   | PRI | NULL    |       |
 | count     | int(10) unsigned | NO   |     | NULL    |       |
 | timestamp | datetime(3)      | NO   |     | NULL    |       |
 +-----------+------------------+------+-----+---------+-------+
-4 rows in set (0.002 sec)
+5 rows in set (0.002 sec)
 
-MariaDB [jeaux]>
+MariaDB [jeaux]> 
 ```

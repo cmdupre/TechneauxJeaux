@@ -38,8 +38,8 @@ void Main::Geaux()
 
         if (!coffeeMaker.connect())
         {
-            SPDLOG_INFO("connect() failed, retry in 5 seconds...");
-            std::this_thread::sleep_for(std::chrono::seconds(5));
+            SPDLOG_INFO("connect() failed, retry in 2 seconds...");
+            std::this_thread::sleep_for(std::chrono::seconds(2));
             continue;
         }
 
@@ -98,7 +98,7 @@ void Main::ProductStatisticCountersChanged(const std::shared_ptr<jutta_bt_proto:
     for (const jutta_bt_proto::MaintenancePercentage& mp : joe->maintenancePercentages)
     {
         std::unique_ptr<sql::PreparedStatement> stmnt(conn->prepareStatement(
-            "INSERT INTO maintenancePercentages (timestamp, name, percentage) VALUES (CURRENT_TIMESTAMP(3), ?, ?) ON DUPLICATE KEY UPDATE timestamp=CURRENT_TIMESTAMP(3), name=VALUES(name), percentage=VALUES(percentage)"));
+            "INSERT INTO maintenancePercentages (date, name, percentage, timestamp) VALUES (CURRENT_DATE, ?, ?, CURRENT_TIMESTAMP(3)) ON DUPLICATE KEY UPDATE date=CURRENT_DATE, name=VALUES(name), percentage=VALUES(percentage), timestamp=CURRENT_TIMESTAMP(3)"));
 
         stmnt->setString(1, mp.name);
         stmnt->setUInt(2, mp.percent);
@@ -109,7 +109,7 @@ void Main::ProductStatisticCountersChanged(const std::shared_ptr<jutta_bt_proto:
     for (const jutta_bt_proto::MaintenanceCounter& mc : joe->maintenanceCounters)
     {
         std::unique_ptr<sql::PreparedStatement> stmnt(conn->prepareStatement(
-            "INSERT INTO maintenanceCounters (timestamp, name, count) VALUES (CURRENT_TIMESTAMP(3), ?, ?) ON DUPLICATE KEY UPDATE timestamp=CURRENT_TIMESTAMP(3), name=VALUES(name), count=VALUES(count)"));
+            "INSERT INTO maintenanceCounters (date, name, count, timestamp) VALUES (CURRENT_DATE, ?, ?, CURRENT_TIMESTAMP(3)) ON DUPLICATE KEY UPDATE date=CURRENT_DATE, name=VALUES(name), count=VALUES(count), timestamp=CURRENT_TIMESTAMP(3)"));
 
         stmnt->setString(1, mc.name);
         stmnt->setUInt(2, mc.count);
@@ -120,7 +120,7 @@ void Main::ProductStatisticCountersChanged(const std::shared_ptr<jutta_bt_proto:
     for (const jutta_bt_proto::Product& p : joe->products)
     {
         std::unique_ptr<sql::PreparedStatement> stmnt(conn->prepareStatement(
-            "INSERT INTO productCounters (timestamp, name, code, count) VALUES (CURRENT_TIMESTAMP(3), ?, ?, ?) ON DUPLICATE KEY UPDATE timestamp=CURRENT_TIMESTAMP(3), name=VALUES(name), code=VALUES(code), count=VALUES(count)"));
+            "INSERT INTO productCounters (date, name, code, count, timestamp) VALUES (CURRENT_DATE, ?, ?, ?, CURRENT_TIMESTAMP(3)) ON DUPLICATE KEY UPDATE date=CURRENT_DATE, name=VALUES(name), code=VALUES(code), count=VALUES(count), timestamp=CURRENT_TIMESTAMP(3)"));
 
         stmnt->setString(1, p.name);
         stmnt->setString(2, p.code);
