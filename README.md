@@ -54,7 +54,8 @@ LOGFILE="/var/log/jeaux/jeaux.log"
 
 if ! pgrep -x 'jeaux' > /dev/null
 then
-    /home/cdupre/run_jeaux/jeaux >> "$LOGFILE" 2>&1 &
+    cd /home/cdupre/run_jeaux
+    ./jeaux >> "$LOGFILE" 2>&1 &
 fi
 ```
 
