@@ -86,6 +86,10 @@ cdupre@Mini:~/src/TechneauxJeaux$ cat /etc/logrotate.d/jeaux
     compress
     delaycompress
     notifempty
+    su cdupre cdupre
+    postrotate
+        /bin/kill -HUP `pgrep jeaux`
+    endscript
 }
 ```
 
