@@ -98,7 +98,7 @@ void Main::ProductStatisticCountersChanged(const std::shared_ptr<jutta_bt_proto:
     for (const jutta_bt_proto::MaintenancePercentage& mp : joe->maintenancePercentages)
     {
         std::unique_ptr<sql::PreparedStatement> stmnt(conn->prepareStatement(
-            "INSERT INTO maintenancePercentages (date, name, percentage, timestamp) VALUES (CURRENT_DATE, ?, ?, CURRENT_TIMESTAMP(3)) ON DUPLICATE KEY UPDATE date=CURRENT_DATE, name=VALUES(name), percentage=VALUES(percentage), timestamp=CURRENT_TIMESTAMP(3)"));
+            "INSERT INTO maintenancePercentages (name, percentage, timestamp) VALUES (?, ?, CURRENT_TIMESTAMP(3)) ON DUPLICATE KEY UPDATE name=VALUES(name), percentage=VALUES(percentage), timestamp=CURRENT_TIMESTAMP(3)"));
 
         stmnt->setString(1, mp.name);
         stmnt->setUInt(2, mp.percent);
@@ -109,7 +109,7 @@ void Main::ProductStatisticCountersChanged(const std::shared_ptr<jutta_bt_proto:
     for (const jutta_bt_proto::MaintenanceCounter& mc : joe->maintenanceCounters)
     {
         std::unique_ptr<sql::PreparedStatement> stmnt(conn->prepareStatement(
-            "INSERT INTO maintenanceCounters (date, name, count, timestamp) VALUES (CURRENT_DATE, ?, ?, CURRENT_TIMESTAMP(3)) ON DUPLICATE KEY UPDATE date=CURRENT_DATE, name=VALUES(name), count=VALUES(count), timestamp=CURRENT_TIMESTAMP(3)"));
+            "INSERT INTO maintenanceCounters (name, count, timestamp) VALUES (?, ?, CURRENT_TIMESTAMP(3)) ON DUPLICATE KEY UPDATE name=VALUES(name), count=VALUES(count), timestamp=CURRENT_TIMESTAMP(3)"));
 
         stmnt->setString(1, mc.name);
         stmnt->setUInt(2, mc.count);
@@ -120,7 +120,7 @@ void Main::ProductStatisticCountersChanged(const std::shared_ptr<jutta_bt_proto:
     for (const jutta_bt_proto::Product& p : joe->products)
     {
         std::unique_ptr<sql::PreparedStatement> stmnt(conn->prepareStatement(
-            "INSERT INTO productCounters (date, name, code, count, timestamp) VALUES (CURRENT_DATE, ?, ?, ?, CURRENT_TIMESTAMP(3)) ON DUPLICATE KEY UPDATE date=CURRENT_DATE, name=VALUES(name), code=VALUES(code), count=VALUES(count), timestamp=CURRENT_TIMESTAMP(3)"));
+            "INSERT INTO productCounters (name, code, count, timestamp) VALUES (?, ?, ?, CURRENT_TIMESTAMP(3)) ON DUPLICATE KEY UPDATE name=VALUES(name), code=VALUES(code), count=VALUES(count), timestamp=CURRENT_TIMESTAMP(3)"));
 
         stmnt->setString(1, p.name);
         stmnt->setString(2, p.code);

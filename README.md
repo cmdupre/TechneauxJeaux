@@ -133,7 +133,6 @@ MariaDB [jeaux]> describe maintenanceCounters;
 +-----------+----------------------+------+-----+---------+-------+
 | Field     | Type                 | Null | Key | Default | Extra |
 +-----------+----------------------+------+-----+---------+-------+
-| date      | date                 | NO   | PRI | NULL    |       |
 | name      | varchar(255)         | NO   | PRI | NULL    |       |
 | count     | smallint(5) unsigned | NO   |     | NULL    |       |
 | timestamp | datetime(3)          | NO   |     | NULL    |       |
@@ -144,7 +143,6 @@ MariaDB [jeaux]> describe maintenancePercentages;
 +------------+---------------------+------+-----+---------+-------+
 | Field      | Type                | Null | Key | Default | Extra |
 +------------+---------------------+------+-----+---------+-------+
-| date       | date                | NO   | PRI | NULL    |       |
 | name       | varchar(255)        | NO   | PRI | NULL    |       |
 | percentage | tinyint(3) unsigned | NO   |     | NULL    |       |
 | timestamp  | datetime(3)         | NO   |     | NULL    |       |
@@ -155,7 +153,6 @@ MariaDB [jeaux]> describe productCounters;
 +-----------+------------------+------+-----+---------+-------+
 | Field     | Type             | Null | Key | Default | Extra |
 +-----------+------------------+------+-----+---------+-------+
-| date      | date             | NO   | PRI | NULL    |       |
 | name      | varchar(255)     | NO   | PRI | NULL    |       |
 | code      | varchar(255)     | NO   | PRI | NULL    |       |
 | count     | int(10) unsigned | NO   |     | NULL    |       |
