@@ -6,8 +6,6 @@
 
 int main()
 {
-    // TODO possibly fork this off to the background and
-    // have the parent process monitor and restart in case of crash?
     Main mainLoop;
     mainLoop.Geaux();
 }
@@ -43,27 +41,48 @@ void Main::Geaux()
             continue;
         }
 
-        // jutta_bt_proto::Product coffee = coffeeMaker.get_joe()->products[2];
+        std::unique_ptr<sql::Connection> conn = GetDbConnection();
+        std::unique_ptr<sql::Statement> stmnt(conn->createStatement());
 
-        // jutta_bt_proto::Product custom_coffee(
-        //     std::move(coffee.name), 
-        //     std::move(coffee.code),
-        //     std::make_optional<jutta_bt_proto::ItemsOption>(std::move(coffee.strength->argument), "0A", std::move(coffee.strength->items)),
-        //     std::move(coffee.temperature),
-        //     std::move(coffee.waterAmount),
-        //     std::move(coffee.milkFoamAmount));
-
-        // coffeeMaker.request_coffee(custom_coffee);
-
-        SPDLOG_INFO("Entering statistics loop.");
+        SPDLOG_INFO("Entering application loop.");
 
         while (coffeeMaker.get_state() == jutta_bt_proto::CONNECTED)
         {
+            SPDLOG_INFO("Requesting statistics...");
             coffeeMaker.request_statistics(jutta_bt_proto::StatParseMode::MAINTENANCE_COUNTER);
             coffeeMaker.request_statistics(jutta_bt_proto::StatParseMode::MAINTENANCE_PERCENT);
             coffeeMaker.request_statistics(jutta_bt_proto::StatParseMode::PRODUCT_COUNTERS_DAILY);
 
-            std::this_thread::sleep_for(std::chrono::minutes{1});
+            unsigned short i = 60;
+            while (i-- > 0)
+            {
+                std::unique_ptr<sql::ResultSet> res(stmnt->executeQuery("select * from orders"));
+                if (res->next()) // only want the first record
+                {
+                    bool geaux = res->getBoolean(1);
+                    if (geaux)
+                    {
+                        jutta_bt_proto::Product coffee = coffeeMaker.get_joe()->products[2];
+
+                        jutta_bt_proto::Product custom_coffee(
+                            std::move(coffee.name), 
+                            std::move(coffee.code),
+                            std::make_optional<jutta_bt_proto::ItemsOption>(std::move(coffee.strength->argument), "05", std::move(coffee.strength->items)),
+                            std::move(coffee.temperature),
+                            std::move(coffee.waterAmount),
+                            std::move(coffee.milkFoamAmount));
+
+                        SPDLOG_INFO("Requesting coffee...");
+                        coffeeMaker.request_coffee(custom_coffee);
+                    }
+
+                    SPDLOG_INFO("Truncating orders table.");
+                    stmnt->executeQuery("truncate table orders");
+                    break;
+                }
+
+                std::this_thread::sleep_for(std::chrono::seconds(1));
+            }
         }
 
         SPDLOG_INFO("Disconnected.");
@@ -78,7 +97,7 @@ void Main::JoeChanged(const std::shared_ptr<jutta_bt_proto::Joe>& joe)
 
 void Main::AlertsChanged(const std::vector<const jutta_bt_proto::Alert*>& alerts)
 {
-    auto conn = GetDbConnection();
+    std::unique_ptr<sql::Connection> conn = GetDbConnection();
 
     for (const jutta_bt_proto::Alert* alert : alerts)
     {
@@ -92,7 +111,7 @@ void Main::AlertsChanged(const std::vector<const jutta_bt_proto::Alert*>& alerts
 
 void Main::ProductStatisticCountersChanged(const std::shared_ptr<jutta_bt_proto::Joe>& joe)
 {
-    auto conn = GetDbConnection();
+    std::unique_ptr<sql::Connection> conn = GetDbConnection();
 
     SPDLOG_INFO("Writing maintenance percentages to database.");
     for (const jutta_bt_proto::MaintenancePercentage& mp : joe->maintenancePercentages)

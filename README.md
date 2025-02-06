@@ -162,3 +162,15 @@ MariaDB [jeaux]> describe productCounters;
 
 MariaDB [jeaux]> 
 ```
+
+## Temporary Table for Placing Default Order (coffee)
+This will be changed later to include options like product name, strength, water amount, etc.
+```
+MariaDB [jeaux]> describe orders;
++-------+------------+------+-----+---------+-------+
+| Field | Type       | Null | Key | Default | Extra |
++-------+------------+------+-----+---------+-------+
+| geaux | tinyint(1) | NO   |     | NULL    |       |
++-------+------------+------+-----+---------+-------+
+1 row in set (0.002 sec)
+```
