@@ -150,8 +150,8 @@ void Main::ProductStatisticCountersChanged(const std::shared_ptr<jutta_bt_proto:
 
 std::unique_ptr<sql::Connection> Main::GetDbConnection()
 {
-    sql::Driver* driver = sql::mariadb::get_driver_instance();
     sql::SQLString url("jdbc:mariadb://localhost:3306/jeaux");
     sql::Properties properties({{"user", ENVIRONMENT_DB_USER}, {"password", ENVIRONMENT_DB_PASS}});
+    sql::Driver* driver = sql::mariadb::get_driver_instance();
     return std::unique_ptr<sql::Connection>(driver->connect(url, properties));
 }
