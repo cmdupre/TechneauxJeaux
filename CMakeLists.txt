@@ -3,7 +3,6 @@ project(jeaux VERSION 0.1.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_BUILD_TYPE Debug)
 
 #find_library(LIBBT libbt.so REQUIRED)
 #find_library(LIBJUTTA libjutta_bt_proto.so REQUIRED)
@@ -22,7 +21,16 @@ target_link_libraries(jeaux
                         ${CMAKE_CURRENT_SOURCE_DIR}/../protocol-bt-cpp/build/src/bt/libbt.so
                         ${CMAKE_CURRENT_SOURCE_DIR}/../protocol-bt-cpp/build/src/jutta_bt_proto/libjutta_bt_proto.so)
 
+set_target_properties(jeaux PROPERTIES
+    INSTALL_RPATH
+    "${CMAKE_CURRENT_SOURCE_DIR}/../protocol-bt-cpp/build/src/bt;${CMAKE_CURRENT_SOURCE_DIR}/../protocol-bt-cpp/build/src/jutta_bt_proto"
+)
+
 add_subdirectory(tests)
 enable_testing()
 
-file(COPY ${CMAKE_SOURCE_DIR}/resources/machinefiles DESTINATION ${CMAKE_BINARY_DIR})
+# Use install instead.
+#file(COPY ${CMAKE_SOURCE_DIR}/resources/machinefiles DESTINATION ${CMAKE_BINARY_DIR})
+install(TARGETS jeaux DESTINATION .)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/resources/machinefiles
+        DESTINATION .)
