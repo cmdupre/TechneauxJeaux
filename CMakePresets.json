@@ -16,8 +16,8 @@
     ],
     "buildPresets": [
         {
-        "name": "prototype",
-        "configurePreset": "prototype"
+            "name": "prototype",
+            "configurePreset": "prototype"
         }
     ]
 }
