@@ -33,5 +33,4 @@ enable_testing()
 # Use install instead.
 #file(COPY ${CMAKE_SOURCE_DIR}/resources/machinefiles DESTINATION ${CMAKE_BINARY_DIR})
 install(TARGETS jeaux DESTINATION .)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/resources/machinefiles
-        DESTINATION .)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/resources/machinefiles DESTINATION .)
