@@ -1,35 +1,89 @@
 # Development Environment
 
-## Setup Environment (Jutta Protocol)
-* install clang libbluetooth-dev glib-2.0 libpcre3 libpcre3-dev doxygen libc++-dev libc++abi-dev libspdlog-dev
-* git clone https://github.com/Jutta-Proto/protocol-bt-cpp.git
-    * (forked copy here: https://github.com/cmdupre/protocol-bt-cpp.git)
-* copy machinefiles directory to [clone-dir]/src/resources/
-    * If you don't have machinefiles directory, it will need to be built from the J.O.E. app apk.
-    * See Jutta-Proto github for more.
-    * I had to create a custom script to replace the included extract script because the xml file location in the apk has changed.
-* Create python venv in [clone-dir]/build
-    * python3 -m venv build
-* cd build
-* bin/pip install conan==1.66.0
-    * Jutta-Proto github says to use an older version but I could not get that version to work.
-* cmake -DCMAKE_BUILD_TYPE=Release ..
-* make
-* sudo make install
-* For some reason, date.hpp does not get installed, do it manually.
-    * sudo cp -r [clone-dir]/src/include/date /usr/local/include/
+## Linux Mint
+* May need to install build-essential
+* apt install git python3-venv python3-pip cmake libbluetooth-dev libglib2.0-dev libpcre3-dev mariadb-server libmariadb3 libmariadb-dev libfmt-dev libspdlog-dev doxygen
 
-## Setup Environment (MariaDB)
-* install mariadb-server libmariadb3 libmariadb-dev
-* follow installation instructions for new connector
+## Techneaux Jeaux - Clone Repository
+* git clone https://github.com/cmdupre/TechneauxJeaux.git
+
+## Jutta Protocol
+* cd src/repos
+* git clone https://github.com/Jutta-Proto/protocol-bt-cpp.git
+   * But… use my forked and modified copy.
+      * https://github.com/cmdupre/protocol-bt-cpp.git
+      * git checkout TechneauxJeaux
+* copy machinefiles directory from TechneauxJeaux repo to [clone-dir]/src/resources/
+* If you don't have machinefiles directory, it will need to be built from the J.O.E. app apk.
+* See Jutta-Proto github for more.
+* I had to create a custom script to replace the included extract script because the xml file location in the apk has changed.
+* Create python venv in [clone-dir]/build
+   * mkdir build
+   * python3 -m venv build
+   * cd build
+   * bin/pip install conan==1.66.0
+      * Jutta-Proto github says to use an older version but I could not get that version to work.
+   * cmake -DCMAKE_BUILD_TYPE=Release ..
+   * make
+   * sudo make install
+* For some reason, date.hpp does not get installed, do it manually.
+   * sudo cp -r [clone-dir]/src/include/date /usr/local/include/
+
+## MariaDB
+* sudo mysql_secure_installation
+* follow installation instructions for new (c++) connector
     * https://mariadb.com/docs/server/connect/programming-languages/cpp/install/
-* run sudo mysql_secure_installation
+    * I was able to install the .deb package with dpkg -i and didn't have to run any of the other install commands listed.
 * database setup
     * https://mariadb.com/kb/en/mariadb-basics/
+ * connection example
+    * https://mariadb.com/resources/blog/how-to-connect-c-programs-to-mariadb/
+  
+## Techneaux Jeaux - Build
+* git checkout prototype-dev
+* create src/environment.h
+```
+#ifndef _ENVIRONMENT_H
+
+const std::string ENVIRONMENT_DB_USER = "asdf";
+const std::string ENVIRONMENT_DB_PASS = "asdf";
+
+#define _ENVIRONMENT_H
+#endif//_ENVIRONMENT_H
+```
+* cmake --preset prototype
+* cmake --build --preset prototype
+* cmake --install ./out/build/prototype
+
+## Custom script to replace Jutta Protocol extract script
+
+```
+#!/bin/bash
+
+if [ "$#" -ne 1 ]; then
+    echo "Invalid amount of arguments!" >&2
+    echo "$0 JURA_JOE_APK_PATH.apk" >&2
+    exit -1
+fi
+
+APK=$1
+
+[ -e "machinefiles" ] && rm -rf "machinefiles"
+mkdir "machinefiles"
+
+for file in `find $1 -type f`
+do
+        cp $file machinefiles/
+done
+
+echo
+echo "Done, manually copy JOE_MACHINES.TXT, ex: cp JOE_MACHINES.TXT ../../../../machinefiles/"
+echo
+```
 
 # Runtime Environment
 
-* Jutta Protocol library requires the "machinefiles" directory to be place next to the application executable.
+* Jutta Protocol library requires the "machinefiles" directory to be place next to the application executable. This should be handled by cmake install above.
 * The check_and_run_jeaux script is a watchdog script to be run via crontab.
 
 ## Executable Directory
