@@ -59,20 +59,29 @@ void Main::Geaux()
                 std::unique_ptr<sql::ResultSet> res(stmnt->executeQuery("select * from orders"));
                 if (res->next()) // only want the first record
                 {
-                    bool geaux = res->getBoolean(1);
-                    if (geaux)
+                    uint8_t strength = static_cast<uint8_t>(res->getUInt(1));
+                    char strength_str[3];
+                    sprintf(strength_str, "%02X", strength);
+
+                    uint8_t amount = static_cast<uint8_t>(res->getUInt(2));
+                    char amount_str[4];
+                    sprintf(amount_str, "%d", amount);
+
+                    if (strength > 0 && amount > 0)
                     {
                         jutta_bt_proto::Product coffee = coffeeMaker.get_joe()->products[2];
 
                         jutta_bt_proto::Product custom_coffee(
                             std::move(coffee.name), 
                             std::move(coffee.code),
-                            std::make_optional<jutta_bt_proto::ItemsOption>(std::move(coffee.strength->argument), "05", std::move(coffee.strength->items)),
+                            std::make_optional<jutta_bt_proto::ItemsOption>(std::move(coffee.strength->argument), std::move(strength_str), std::move(coffee.strength->items)),
                             std::move(coffee.temperature),
-                            std::move(coffee.waterAmount),
+                            std::make_optional<jutta_bt_proto::MinMaxOption>(std::move(coffee.waterAmount->argument), amount, coffee.waterAmount->min, coffee.waterAmount->max, coffee.waterAmount->step),
                             std::move(coffee.milkFoamAmount));
 
                         SPDLOG_INFO("Requesting coffee...");
+                        SPDLOG_INFO(strength_str);
+                        SPDLOG_INFO(amount_str);
                         coffeeMaker.request_coffee(custom_coffee);
                     }
 
