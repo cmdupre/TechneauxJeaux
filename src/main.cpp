@@ -14,6 +14,8 @@ void Main::Geaux()
 {
     while (true)
     {
+        SetConnectionStatus(false);
+
         SPDLOG_INFO("Scanning...");
 
         bool cancelled = false;
@@ -41,6 +43,8 @@ void Main::Geaux()
             continue;
         }
 
+        SetConnectionStatus(true);
+
         std::unique_ptr<sql::Connection> conn = GetDbConnection();
         std::unique_ptr<sql::Statement> stmnt(conn->createStatement());
 
@@ -64,8 +68,6 @@ void Main::Geaux()
                     sprintf(strength_str, "%02X", strength);
 
                     uint8_t amount = static_cast<uint8_t>(res->getUInt(2));
-                    char amount_str[4];
-                    sprintf(amount_str, "%d", amount);
 
                     if (strength > 0 && amount > 0)
                     {
@@ -80,13 +82,10 @@ void Main::Geaux()
                             std::move(coffee.milkFoamAmount));
 
                         SPDLOG_INFO("Requesting coffee...");
-                        SPDLOG_INFO(strength_str);
-                        SPDLOG_INFO(amount_str);
                         coffeeMaker.request_coffee(custom_coffee);
                     }
 
-                    SPDLOG_INFO("Truncating orders table.");
-                    stmnt->executeQuery("truncate table orders");
+                    TruncateOrders();
                     break;
                 }
 
@@ -163,4 +162,25 @@ std::unique_ptr<sql::Connection> Main::GetDbConnection()
     sql::Properties properties({{"user", ENVIRONMENT_DB_USER}, {"password", ENVIRONMENT_DB_PASS}});
     sql::Driver* driver = sql::mariadb::get_driver_instance();
     return std::unique_ptr<sql::Connection>(driver->connect(url, properties));
+}
+
+void Main::SetConnectionStatus(bool status)
+{
+    TruncateOrders();
+    
+    std::unique_ptr<sql::Connection> conn = GetDbConnection();
+    std::unique_ptr<sql::PreparedStatement> stmnt(conn->prepareStatement("UPDATE connection SET status=?"));
+
+    stmnt->setBoolean(1, status);
+    stmnt->executeQuery();
+}
+
+void Main::TruncateOrders(void)
+{
+    SPDLOG_INFO("Truncating orders table.");
+
+    std::unique_ptr<sql::Connection> conn = GetDbConnection();
+    std::unique_ptr<sql::Statement> stmnt(conn->createStatement());
+
+    stmnt->executeQuery("truncate table orders");
 }

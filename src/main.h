@@ -12,6 +12,8 @@ public:
     static void AlertsChanged(const std::vector<const jutta_bt_proto::Alert*>& alerts);
     static void ProductStatisticCountersChanged(const std::shared_ptr<jutta_bt_proto::Joe>& joe);
     static std::unique_ptr<sql::Connection> GetDbConnection();
+    static void SetConnectionStatus(bool status);
+    static void TruncateOrders(void);
 };
 
 #endif//_MAIN_H
